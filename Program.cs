@@ -1,6 +1,7 @@
 using Microsoft.EntityFrameworkCore;
 using CommentsApi.Services;
 using CommentsApi.Data;
+using CommentsApi.Middleware;
 
 
 var builder = WebApplication.CreateBuilder(args);
@@ -16,9 +17,14 @@ builder.Services.AddSwaggerGen();
 builder.Services.AddDbContext<AppDbContext>(options =>
     options.UseSqlite("Data Source=/data/comments.db"));
 
+// Servicios
 builder.Services.AddScoped<ISentimentService, SentimentService>();
+builder.Services.AddScoped<ICommentsService, CommentsService>();
 
 var app = builder.Build();
+
+// Middleware de excepciones (debe ir antes de otros middlewares)
+app.UseMiddleware<ExceptionMiddleware>();
 
 // Swagger - habilitado siempre para facilitar el desarrollo
 app.UseSwagger();

@@ -1,40 +1,24 @@
 namespace CommentsApi.Controllers;
 
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
-using CommentsApi.Models;
 using CommentsApi.Services;
-using CommentsApi.Data;
+using CommentsApi.Dtos;
 
 [ApiController]
 [Route("api/comments")]
 public class CommentsController : ControllerBase
 {
-    private readonly AppDbContext _context;
-    private readonly ISentimentService _sentimentService;
+    private readonly ICommentsService _commentsService;
 
-    public CommentsController(AppDbContext context, ISentimentService sentimentService)
+    public CommentsController(ICommentsService commentsService)
     {
-        _context = context;
-        _sentimentService = sentimentService;
+        _commentsService = commentsService;
     }
 
     [HttpPost]
-    public async Task<IActionResult> Create(CreateCommentDto dto)
+    public async Task<IActionResult> Create([FromBody] CreateCommentDto dto)
     {
-        var sentiment = _sentimentService.Analyze(dto.CommentText);
-
-        var comment = new Comment
-        {
-            ProductId = dto.ProductId,
-            UserId = dto.UserId,
-            CommentText = dto.CommentText,
-            Sentiment = sentiment
-        };
-
-        _context.Comments.Add(comment);
-        await _context.SaveChangesAsync();
-
+        var comment = await _commentsService.CreateCommentAsync(dto);
         return Ok(comment);
     }
 
@@ -43,39 +27,14 @@ public class CommentsController : ControllerBase
         [FromQuery] string? productId,
         [FromQuery] string? sentiment)
     {
-        var query = _context.Comments.AsQueryable();
-
-        if (!string.IsNullOrEmpty(productId))
-            query = query.Where(c => c.ProductId == productId);
-
-        if (!string.IsNullOrEmpty(sentiment))
-            query = query.Where(c => c.Sentiment == sentiment);
-
-        var results = await query
-            .OrderByDescending(c => c.CreatedAt)
-            .ToListAsync();
-
-        return Ok(results);
+        var comments = await _commentsService.GetCommentsAsync(productId, sentiment);
+        return Ok(comments);
     }
 
     [HttpGet("/api/sentiment-summary")]
     public async Task<IActionResult> GetSummary()
     {
-        var total = await _context.Comments.CountAsync();
-
-        var summary = await _context.Comments
-            .GroupBy(c => c.Sentiment)
-            .Select(g => new
-            {
-                Sentiment = g.Key,
-                Count = g.Count()
-            })
-            .ToListAsync();
-
-        return Ok(new
-        {
-            Total = total,
-            Summary = summary
-        });
+        var summary = await _commentsService.GetSentimentSummaryAsync();
+        return Ok(summary);
     }
 }
