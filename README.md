@@ -13,20 +13,40 @@ Runs on **Windows, macOS, Linux** without requiring a local .NET installation.
 ```bash
 docker --version
 ```
+
+---
+
+## 📥 Cloning the Repository
+
+```bash
+git clone https://github.com/casmanzano95/comments-api.git
+cd comments-api
+```
+
+Replace `yourusername` with the actual GitHub username or repository URL.
+
 ---
 
 ## 🐳 Running the Project
 
-### 1️⃣ Build & Start
+### 1️⃣ Build & Start Containers
 
 ```bash
-docker compose up --build -d
+docker compose build
+docker compose up -d
 ```
 
 > For older Docker versions:  
 > ```bash>
-docker-compose up --build -d
+docker-compose build
+docker-compose up -d
 ```
+
+This will:
+- Build the Docker image for the API
+- Start the API container
+- Apply EF Core migrations automatically
+- Create the SQLite database and tables inside a Docker volume
 
 ### 2️⃣ Stop Containers
 
@@ -35,6 +55,12 @@ docker compose down
 ```
 
 > Database is persisted in a Docker volume: `comments_data`
+
+### 3️⃣ View Logs (Optional)
+
+```bash
+docker compose logs -f
+```
 
 ---
 
@@ -115,26 +141,10 @@ dotnet test Tests/CommentsApi.IntegrationTests
 ## ⚡ Quick Commands
 
 ```bash
-# Build and start
-docker compose up --build -d
+# Build Docker image
+docker compose build
 
-# Stop containers
-docker compose down
+# Start containers
+docker compose up -d
 
-# Check logs
-docker compose logs -f
-
-# Enter container shell (Linux only)
-docker compose exec comments-api sh
-```
-
----
-
-## 📌 Summary
-
-- Fully containerized, cross-platform  
-- Automatic database setup and migrations  
-- Swagger for testing  
-- No local .NET SDK required  
-- Works on macOS, Windows, Linux with Docker only
-
+#
