@@ -1,3 +1,5 @@
+using System.Globalization;
+using System.Text;
 using System.Text.RegularExpressions;
 using CommentsApi.Resources;
 
@@ -12,12 +14,18 @@ public class SentimentService : ISentimentService
 {
     private readonly string[] _positiveWords;
     private readonly string[] _negativeWords;
+    private readonly string[] _positivePhrases;
+    private readonly string[] _negativePhrases;
     private readonly ILogger<SentimentService> _logger;
 
     public SentimentService(ILogger<SentimentService> logger)
     {
-        _positiveWords = SentimentWords.PositiveWords;
-        _negativeWords = SentimentWords.NegativeWords;
+        // Separar palabras de frases
+        _positiveWords = SentimentWords.PositiveWords.Where(w => !w.Contains(' ')).ToArray();
+        _negativeWords = SentimentWords.NegativeWords.Where(w => !w.Contains(' ')).ToArray();
+        _positivePhrases = SentimentWords.PositiveWords.Where(w => w.Contains(' ')).ToArray();
+        _negativePhrases = SentimentWords.NegativeWords.Where(w => w.Contains(' ')).ToArray();
+
         _logger = logger;
     }
 
@@ -26,76 +34,74 @@ public class SentimentService : ISentimentService
         if (string.IsNullOrWhiteSpace(text))
             return "neutral";
 
+        // Normalizar texto: minúsculas + quitar acentos
         var normalizedText = NormalizeText(text);
+
+        // Extraer palabras del texto
         var words = ExtractWords(normalizedText);
 
-        var positiveScore = CalculatePositiveScore(words, normalizedText);
-        var negativeScore = CalculateNegativeScore(words, normalizedText);
+        // Calcular puntajes
+        int positiveScore = CountMatches(words, normalizedText, _positiveWords, _positivePhrases);
+        int negativeScore = CountMatches(words, normalizedText, _negativeWords, _negativePhrases);
 
-        var sentiment = DetermineSentiment(positiveScore, negativeScore);
+        // Determinar sentimiento final
+        string sentiment = DetermineSentiment(positiveScore, negativeScore);
 
-        _logger.LogDebug(
-            "Análisis de sentimiento: Texto='{Text}', Positivo={PositiveScore}, Negativo={NegativeScore}, Resultado={Sentiment}",
-            text.Substring(0, Math.Min(50, text.Length)),
-            positiveScore,
-            negativeScore,
-            sentiment);
+        // Log breve para depuración
+        var preview = text.Length > 50 ? text.Substring(0, 50) + "..." : text;
+        _logger.LogDebug("Texto='{Text}', Positivo={PositiveScore}, Negativo={NegativeScore}, Resultado={Sentiment}",
+            preview, positiveScore, negativeScore, sentiment);
 
         return sentiment;
     }
 
     private string NormalizeText(string text)
     {
-        return text.ToLower().Trim();
+        text = text.ToLower().Trim();
+        return RemoveAccents(text);
+    }
+
+    private string RemoveAccents(string text)
+    {
+        if (string.IsNullOrWhiteSpace(text)) return text;
+
+        var normalized = text.Normalize(NormalizationForm.FormD);
+        var sb = new StringBuilder();
+
+        foreach (var c in normalized)
+        {
+            if (CharUnicodeInfo.GetUnicodeCategory(c) != UnicodeCategory.NonSpacingMark)
+                sb.Append(c);
+        }
+
+        return sb.ToString().Normalize(NormalizationForm.FormC);
     }
 
     private string[] ExtractWords(string text)
     {
-        // Remover signos de puntuación y dividir en palabras
-        var cleanedText = Regex.Replace(text, @"[^\w\s]", " ");
-        return cleanedText
-            .Split(new[] { ' ', '\t', '\n', '\r' }, StringSplitOptions.RemoveEmptyEntries)
-            .Where(w => w.Length > 2) // Filtrar palabras muy cortas
-            .ToArray();
+        var cleaned = Regex.Replace(text, @"[^\w\s]", " "); // quitar signos de puntuación
+        return cleaned.Split(new[] { ' ', '\t', '\n', '\r' }, StringSplitOptions.RemoveEmptyEntries)
+                      .Where(w => w.Length > 2)
+                      .ToArray();
     }
 
-    private int CalculatePositiveScore(string[] words, string fullText)
+    private int CountMatches(string[] words, string fullText, string[] wordList, string[] phraseList)
     {
-        var wordScore = words.Count(word => _positiveWords.Contains(word));
-        
-        // Buscar frases completas positivas (dar más peso)
-        var phraseScore = _positiveWords
-            .Where(phrase => phrase.Contains(' ') && fullText.Contains(phrase))
-            .Count() * 2; // Las frases valen el doble
+        // Contar palabras que coincidan exactamente
+        int wordScore = words.Count(w => wordList.Contains(w));
 
-        return wordScore + phraseScore;
-    }
-
-    private int CalculateNegativeScore(string[] words, string fullText)
-    {
-        var wordScore = words.Count(word => _negativeWords.Contains(word));
-        
-        // Buscar frases completas negativas (dar más peso)
-        var phraseScore = _negativeWords
-            .Where(phrase => phrase.Contains(' ') && fullText.Contains(phrase))
-            .Count() * 2; // Las frases valen el doble
+        // Contar frases que aparezcan en el texto completo (doble puntaje)
+        int phraseScore = phraseList.Count(p => fullText.Contains(p)) * 2;
 
         return wordScore + phraseScore;
     }
 
     private string DetermineSentiment(int positiveScore, int negativeScore)
     {
-        if (positiveScore > negativeScore)
-            return "positive";
+        if (positiveScore > negativeScore) return "positive";
+        if (negativeScore > positiveScore) return "negative";
 
-        if (negativeScore > positiveScore)
-            return "negative";
-
-        // Si hay empate o ambos son 0, verificar si hay alguna palabra clave fuerte
-        if (positiveScore == 0 && negativeScore == 0)
-            return "neutral";
-
-        // En caso de empate, priorizar negativo (más conservador)
-        return "negative";
+        // Empate o sin coincidencias
+        return positiveScore == 0 && negativeScore == 0 ? "neutral" : "positive";
     }
 }

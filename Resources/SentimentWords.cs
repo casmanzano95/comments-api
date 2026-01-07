@@ -5,12 +5,12 @@ public static class SentimentWords
     public static readonly string[] PositiveWords = new[]
     {
         // Adjetivos positivos básicos
-        "excelente", "genial", "fantástico", "bueno", "increíble", "maravilloso",
-        "perfecto", "súper", "estupendo", "magnífico", "espléndido", "extraordinario",
-        "impresionante", "asombroso", "sorprendente", "increíble", "fenomenal",
+        "excelente", "genial", "fantástico", "fantastico", "bueno", "increíble", "increible", "maravilloso",
+        "perfecto", "súper", "super", "estupendo", "magnífico", "magnifico", "espléndido", "esplendido", "extraordinario",
+        "impresionante", "asombroso", "sorprendente", "increíble", "increible", "fenomenal",
         
         // Calificaciones positivas
-        "mejor", "óptimo", "ideal", "perfecto", "satisfactorio", "satisfecho",
+        "mejor", "óptimo", "optimo", "ideal", "perfecto", "satisfactorio", "satisfecho",
         "contento", "feliz", "alegre", "encantado", "emocionado", "entusiasmado",
         
         // Expresiones de aprobación
@@ -24,25 +24,27 @@ public static class SentimentWords
         "duradero", "resistente", "robusto", "confiable", "confiable",
         
         // Experiencia positiva
-        "rápido", "rápida", "eficiente", "eficaz", "funcional", "práctico",
-        "cómodo", "cómoda", "fácil", "sencillo", "intuitivo", "útil",
-        "útil", "práctico", "conveniente",
+        "rápido", "rapido", "rápida", "rapida", "eficiente", "eficaz", "funcional", "práctico", "practico",
+        "cómodo", "comodo", "cómoda", "comoda", "fácil", "facil", "sencillo", "intuitivo", "útil", "util",
+        "útil", "util", "práctico", "practico", "conveniente",
         
         // Expresiones emocionales positivas
-        "amor", "adoro", "adoré", "me encanta", "me encantó", "me fascina",
-        "increíble", "súper", "genial", "chévere", "bacán", "padre",
+        "amor", "adoro", "adoré", "adore", "me encanta", "me encantó", "me encanto", "me fascina",
+        "increíble", "increible", "súper", "super", "genial", "chévere", "chevere", "bacán", "bacan", "padre",
         
         // Comparaciones positivas
-        "supera", "superó", "mejor que", "mejor de", "superior", "destacado",
-        "sobresaliente", "excepcional", "único", "especial"
+        "supera", "superó", "supero", "superar", "superado", "superando", 
+        "cumplió", "cumplio", "cumplir", "cumplido", "cumple", "cumplió mis expectativas", "cumplio mis expectativas",
+        "mejor que", "mejor de", "superior", "destacado",
+        "sobresaliente", "excepcional", "único", "unico", "especial"
     };
 
     public static readonly string[] NegativeWords = new[]
     {
         // Adjetivos negativos básicos
-        "malo", "terrible", "horrible", "defecto", "problema", "pésimo",
+        "malo", "terrible", "horrible", "defecto", "problema", "pésimo", "pesimo",
         "decepcionante", "frustrante", "molesto", "irritante", "fastidioso",
-        "desagradable", "desastroso", "catastrófico", "inaceptable", "inadecuado",
+        "desagradable", "desastroso", "catastrófico", "catastrofico", "inaceptable", "inadecuado",
         
         // Calificaciones negativas
         "peor", "peor que", "inferior", "deficiente", "insuficiente", "limitado",
@@ -65,8 +67,8 @@ public static class SentimentWords
         
         // Experiencia negativa
         "lento", "lenta", "ineficiente", "ineficaz", "no funciona", "no sirve",
-        "incómodo", "incómoda", "difícil", "complicado", "confuso", "inútil",
-        "inútil", "impráctico", "inconveniente",
+        "incómodo", "incomodo", "incómoda", "incomoda", "difícil", "dificil", "complicado", "confuso", "inútil", "inutil",
+        "inútil", "inutil", "impráctico", "impractico", "inconveniente",
         
         // Expresiones emocionales negativas
         "odio", "detesto", "me disgusta", "me disgustó", "me molesta",

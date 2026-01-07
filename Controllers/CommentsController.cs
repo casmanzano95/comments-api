@@ -18,6 +18,12 @@ public class CommentsController : ControllerBase
     [HttpPost]
     public async Task<IActionResult> Create([FromBody] CreateCommentDto dto)
     {
+        // Validar el modelo antes de procesar
+        if (!ModelState.IsValid)
+        {
+            return BadRequest(ModelState);
+        }
+
         var comment = await _commentsService.CreateCommentAsync(dto);
         return Ok(comment);
     }

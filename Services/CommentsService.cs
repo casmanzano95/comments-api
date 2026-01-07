@@ -32,6 +32,7 @@ public class CommentsService : ICommentsService
 
     public async Task<Comment> CreateCommentAsync(CreateCommentDto dto)
     {
+        // Validar antes de procesar
         ValidateCreateCommentDto(dto);
         
         var sentiment = AnalyzeSentiment(dto.CommentText);
@@ -71,14 +72,51 @@ public class CommentsService : ICommentsService
         if (dto == null)
             throw new ArgumentNullException(nameof(dto), Messages.CommentCannotBeNull);
 
-        if (string.IsNullOrWhiteSpace(dto.CommentText))
-            throw new ArgumentException(Messages.CommentTextRequired, nameof(dto.CommentText));
+        ValidateCommentText(dto.CommentText);
+        ValidateProductId(dto.ProductId);
+        ValidateUserId(dto.UserId);
+    }
 
-        if (string.IsNullOrWhiteSpace(dto.ProductId))
-            throw new ArgumentException(Messages.ProductIdRequired, nameof(dto.ProductId));
+    private void ValidateCommentText(string commentText)
+    {
+        if (commentText == null)
+            throw new ArgumentNullException(nameof(commentText), Messages.CommentTextRequired);
 
-        if (string.IsNullOrWhiteSpace(dto.UserId))
-            throw new ArgumentException(Messages.UserIdRequired, nameof(dto.UserId));
+        // Validar que después de trim tenga contenido (esto cubre vacío y solo espacios)
+        var trimmedCommentText = commentText.Trim();
+        if (string.IsNullOrEmpty(trimmedCommentText))
+        {
+            _logger.LogWarning("Intento de crear comentario con CommentText vacío o solo espacios: '{CommentText}'", commentText);
+            throw new ArgumentException(Messages.CommentTextCannotBeEmpty, nameof(commentText));
+        }
+    }
+
+    private void ValidateProductId(string productId)
+    {
+        if (productId == null)
+            throw new ArgumentNullException(nameof(productId), Messages.ProductIdRequired);
+
+        // Validar que después de trim tenga contenido (esto cubre vacío y solo espacios)
+        var trimmedProductId = productId.Trim();
+        if (string.IsNullOrEmpty(trimmedProductId))
+        {
+            _logger.LogWarning("Intento de crear comentario con ProductId vacío o solo espacios: '{ProductId}'", productId);
+            throw new ArgumentException(Messages.ProductIdCannotBeEmpty, nameof(productId));
+        }
+    }
+
+    private void ValidateUserId(string userId)
+    {
+        if (userId == null)
+            throw new ArgumentNullException(nameof(userId), Messages.UserIdRequired);
+
+        // Validar que después de trim tenga contenido (esto cubre vacío y solo espacios)
+        var trimmedUserId = userId.Trim();
+        if (string.IsNullOrEmpty(trimmedUserId))
+        {
+            _logger.LogWarning("Intento de crear comentario con UserId vacío o solo espacios: '{UserId}'", userId);
+            throw new ArgumentException(Messages.UserIdCannotBeEmpty, nameof(userId));
+        }
     }
 
     private string AnalyzeSentiment(string commentText)
